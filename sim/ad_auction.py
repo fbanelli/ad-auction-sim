@@ -5,7 +5,7 @@ from typing import Dict, List, Callable, Optional, Tuple
 
 
 class Bidder:
-    """Represent a bidder participating in ad auctions.
+    """Represent a bidder participating in the ad auctions.
 
     Attributes:
         name (str): Unique identifier for the bidder.
@@ -31,6 +31,7 @@ class Bidder:
         """
         self.name = name
         self.targeting = targeting
+        # default to truthful bidding
         self.bid_func = bid_func or (lambda bidder, adspot, valuation: valuation)
 
     def valuation(self, adspot, valuation_fn: Callable[['Bidder', 'AdSpot'], float]) -> float:
