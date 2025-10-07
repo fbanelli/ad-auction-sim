@@ -1,4 +1,5 @@
 import math
+from typing import List
 import pytest
 import random
 from sim.ad_auction import Bidder, AdSpot, Platform
@@ -6,9 +7,9 @@ from sim.ad_auction import Bidder, AdSpot, Platform
 
 # ---------- Fixtures and helpers ----------
 
-def simple_valuation(bidder: Bidder, adspot: AdSpot) -> float:
+def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: List[float]) -> float:
     """Simple valuation: sum of bidder's tag weights matching adspot tags."""
-    return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
+    return sum(bidder.targeting.get(tag, 0.0) * ctr for tag, ctr in zip(adspot.tags, ctrs))
 
 
 @pytest.fixture(autouse=True)
@@ -29,7 +30,7 @@ def test_bidder_default_and_custom_func():
     assert b.targeting == {"sports": 1.0}
 
     # default truthful bid == valuation
-    val = b.valuation(a, simple_valuation)
+    val = b.valuation(a, simple_valuation, a.pos)
     assert val == 1.0
     assert b.bid(a, val) == 1.0
 
@@ -45,17 +46,17 @@ def test_bidder_default_and_custom_func():
 def test_adspot_init_default_and_explicit_ctrs():
     """Test creation with default and explicit CTRs."""
     a = AdSpot(2, ["a", "b"])
-    assert a.num_spots == 2
-    assert a.ctrs == [1.0, 1.0]
+    assert a.num_slots == 2
+    assert a.pos == [1.0, 1.0]
     assert a.tags == ["a", "b"]
 
     # explicit CTRs
-    b = AdSpot(2, ["x"], ctrs=[0.8, 0.3])
-    assert b.ctrs == [0.8, 0.3]
+    b = AdSpot(2, ["x"], pos=[0.8, 0.3])
+    assert b.pos == [0.8, 0.3]
 
     # mismatched CTR length
     with pytest.raises(ValueError):
-        AdSpot(2, ["a"], ctrs=[0.5])
+        AdSpot(2, ["a"], pos=[0.5])
 
     # invalid num_spots
     with pytest.raises(AssertionError):
@@ -132,7 +133,7 @@ def test_second_price_with_fewer_bidders_than_slots():
 
 def test_gsp_ordered_slots_and_pricing():
     """Generalized Second Price auction ordering and pricing."""
-    a = AdSpot(3, ["music"], ctrs=[1.0, 0.6, 0.3])
+    a = AdSpot(3, ["music"], pos=[1.0, 0.6, 0.3])
     b1 = Bidder("A", {"music": 10.0})
     b2 = Bidder("B", {"music": 6.0})
     b3 = Bidder("C", {"music": 4.0})
@@ -146,7 +147,7 @@ def test_gsp_ordered_slots_and_pricing():
 
 def test_gsp_with_fewer_bidders_than_slots():
     """If fewer bidders than slots, remaining slots are unfilled."""
-    a = AdSpot(3, ["x"], ctrs=[1.0, 0.5, 0.2])
+    a = AdSpot(3, ["x"], pos=[1.0, 0.5, 0.2])
     b1 = Bidder("A", {"x": 3.0})
     b2 = Bidder("B", {"x": 1.0})
     res = a.assign([b1, b2], method="gsp", valuation_fn=simple_valuation)
@@ -161,7 +162,7 @@ def test_gsp_with_fewer_bidders_than_slots():
 def test_platform_runs_multiple_auctions():
     """Verify Platform delegates to AdSpot.assign correctly."""
     a1 = AdSpot(1, ["a"])
-    a2 = AdSpot(2, ["b"], ctrs=[1.0, 0.5])
+    a2 = AdSpot(2, ["b"], pos=[1.0, 0.5])
     b1 = Bidder("B1", {"a": 2.0, "b": 1.0})
     b2 = Bidder("B2", {"b": 2.0})
     platform = Platform([b1, b2])
