@@ -27,6 +27,7 @@ class Bidder:
         Examples:
             >>> bidder = Bidder("A", {"sports": 0.8})
             >>> bidder.bid(None, 0.5)
+            0.5
         """
         self.name = name
         self.targeting = targeting 
@@ -34,7 +35,7 @@ class Bidder:
         # default to truthful bidding
         self.bid_func = bid_func or (lambda bidder, adspot, valuation: valuation)
 
-    def valuation(self, adspot, valuation_fn: Callable[['Bidder', 'AdSpot', List[float]], float], ctrs: List[float]) -> float:
+    def valuation(self, adspot: AdSpot, valuation_fn: Callable[['Bidder', 'AdSpot', List[float]], float], ctrs: List[float]) -> float:
         """Compute the bidder's valuation for a given adspot.
 
         Args:
@@ -47,7 +48,7 @@ class Bidder:
         """
         return valuation_fn(self, adspot, ctrs)
 
-    def bid(self, adspot, valuation: float) -> float:
+    def bid(self, adspot: AdSpot, valuation: float) -> float:
         """Compute the bidder's submitted bid.
 
         Args:
@@ -102,7 +103,7 @@ class AdSpot:
         self,
         bidders: List[Bidder],
         method: str = "second_price",
-        valuation_fn: Optional[Callable[[Bidder, 'AdSpot'], float]] = None,
+        valuation_fn: Optional[Callable[[Bidder, 'AdSpot', List[float]], float]] = None,
         Qs: Optional[List[float]] = None
     ) -> Dict[str, List]:
         """Run an auction among bidders for this adspot.
@@ -110,7 +111,7 @@ class AdSpot:
         Args:
             bidders (list[Bidder]): Participants in the auction.
             method (str): Auction type, one of {'first_price', 'second_price', 'gsp'}.
-            valuation_fn (Callable): Function (bidder, adspot) -> valuation.
+            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
         Returns:
             dict[str, list]: A dictionary with keys:
@@ -210,14 +211,14 @@ class Platform:
         self,
         adspots: List[AdSpot],
         method: str = "second_price",
-        valuation_fn: Optional[Callable[[Bidder, AdSpot], float]] = None,
+        valuation_fn: Optional[Callable[[Bidder, AdSpot, List[float]], float]] = None,
     ) -> List[Dict[str, List]]:
         """Run auctions for multiple adspots sequentially.
 
         Args:
             adspots (list[AdSpot]): List of ad opportunities to allocate.
             method (str): Auction format, defaults to 'second_price'.
-            valuation_fn (Callable): Function (bidder, adspot) -> valuation.
+            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
         Returns:
             list[dict[str, list]]: Results per adspot, each with 'winners' and 'prices'.

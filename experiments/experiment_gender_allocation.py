@@ -1,18 +1,20 @@
 from collections import Counter
 import random
-from typing import Dict, Any
+from typing import Dict, Any, Callable
 
 from sim.ad_auction import Bidder, AdSpot, Platform
 
 
-def simple_valuation(bidder: Bidder, adspot: AdSpot) -> float:
+def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs=None) -> float:
+    # Backwards-compatible: accept optional ctrs (ignored) so this function can be
+    # directly passed to the simulator which provides ctrs per bidder.
     return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
 
 
-def run_simulations(n_impressions: int = 2000, methods=None, seed: int = 0, valuation_fn: callable = simple_valuation) -> Dict[str, Any]:
+def run_simulations(n_impressions: int = 2000, methods=None, seed: int = 0, valuation_fn: Callable = simple_valuation) -> Dict[str, Any]:
     """Run simulations for a list of auction methods and collect stats.
 
-    args:
+    Args:
         n_impressions: number of user impressions to simulate
         methods: list of auction methods to simulate (default: ["first_price", "second_price", "gsp"])
         seed: random seed for reproducibility

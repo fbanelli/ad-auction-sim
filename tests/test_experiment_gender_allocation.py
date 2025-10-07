@@ -1,8 +1,13 @@
 from experiments.experiment_gender_allocation import run_simulations
 
 
+def three_arg_simple_valuation(bidder, adspot, ctrs):
+    # ignore ctrs in experiment-level valuation (experiment uses tag-based sums)
+    return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
+
+
 def test_stem_overrepresented_in_male_impressions():
-    results = run_simulations(n_impressions=1000, methods=["second_price"], seed=42)
+    results = run_simulations(n_impressions=1000, methods=["second_price"], seed=42, valuation_fn=three_arg_simple_valuation)
     stats = results["second_price"]
 
     female_total = sum(stats["counts"]["female"].values())
