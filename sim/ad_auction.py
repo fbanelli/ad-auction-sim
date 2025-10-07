@@ -231,7 +231,7 @@ class Platform:
 
         results = []
         for spot in adspots:
-            # quality of ad (in reality is given by machine learning model, here we simulate it with random values)
+            # Quality of ad (in reality is given by machine learning model, here we simulate it with random values)
             Qs = [random.uniform(0.1, 0.9) for _ in self.bidders]
 
             # Delegates the auction logic to each AdSpot instance.
