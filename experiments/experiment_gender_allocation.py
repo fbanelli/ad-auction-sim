@@ -1,4 +1,4 @@
-from collections import Counter, defaultdict
+from collections import Counter
 import random
 from typing import Dict, Any
 
@@ -12,6 +12,12 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot) -> float:
 def run_simulations(n_impressions: int = 2000, methods=None, seed: int = 0, valuation_fn: callable = simple_valuation) -> Dict[str, Any]:
     """Run simulations for a list of auction methods and collect stats.
 
+    args:
+        n_impressions: number of user impressions to simulate
+        methods: list of auction methods to simulate (default: ["first_price", "second_price", "gsp"])
+        seed: random seed for reproducibility
+        valuation_fn: function to compute bidder's valuation for an ad spot
+
     Returns a dictionary mapping method -> stats, where stats contains per-gender counts,
     per-bidder spends, average prices, and share metrics.
     """
@@ -20,6 +26,7 @@ def run_simulations(n_impressions: int = 2000, methods=None, seed: int = 0, valu
 
     random.seed(seed)
 
+    # Define bidders with gender-specific targeting and valuations
     makeup = Bidder("Makeup", {"female": 5.0})
     stem = Bidder("STEM", {"female": 2.0, "male": 2.0})
     bidders = [makeup, stem]
@@ -32,7 +39,7 @@ def run_simulations(n_impressions: int = 2000, methods=None, seed: int = 0, valu
         total_spend = Counter()
         prices_list = []
 
-        for i in range(n_impressions):
+        for _ in range(n_impressions):
             gender = random.choice(["male", "female"])  # 50/50 distribution
             spot = AdSpot(1, [gender])
             res = platform.assign([spot], method=method, valuation_fn=valuation_fn)[0]
