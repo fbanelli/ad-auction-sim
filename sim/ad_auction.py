@@ -249,6 +249,7 @@ class Platform:
             bidder (Bidder): The bidder to add.
         """
         self.bidders.append(bidder)
+        
     def remove_bidder(self, bidder: Bidder):
         """Remove a bidder from the platform.
 
@@ -261,6 +262,7 @@ class Platform:
         except ValueError:
             # previously this would raise; make remove operation tolerant
             return
+        
     def clear_bidders(self):
         """Remove all bidders from the platform."""
         self.bidders = []
