@@ -249,7 +249,6 @@ class Platform:
             bidder (Bidder): The bidder to add.
         """
         self.bidders.append(bidder)
-        
     def remove_bidder(self, bidder: Bidder):
         """Remove a bidder from the platform.
 
