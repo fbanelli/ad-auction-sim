@@ -260,6 +260,7 @@ class Platform:
         try:
             self.bidders.remove(bidder)
         except ValueError:
+            print(f"WARNING: Bidder {bidder.name} not found on platform.")
             # previously this would raise; make remove operation tolerant
             return
         
