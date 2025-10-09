@@ -91,4 +91,8 @@ def test_module_main_executes(monkeypatch):
     monkeypatch.setattr(ega, "try_plot", lambda results: None)
 
     # Running module as __main__ should execute the block without error
-    runpy.run_module("experiments.experiment_gender_allocation", run_name="__main__")
+    # suppress the RuntimeWarning about module already present in sys.modules
+    import warnings
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message=".*found in sys.modules.*", category=RuntimeWarning)
+        runpy.run_module("experiments.experiment_gender_allocation", run_name="__main__")
