@@ -191,3 +191,52 @@ def test_random_tie_breaking_produces_valid_results():
     res = a.assign([b1, b2], method="first_price", valuation_fn=simple_valuation)
     assert set(res["winners"]).issubset({b1, b2})
     assert all(p >= 0 for p in res["prices"])
+
+
+def test_platform_add_remove_clear_and_list_get():
+    """Test add/remove/clear/list/get bidder functionality on Platform."""
+    b1 = Bidder("B1", {"a": 1.0})
+    b2 = Bidder("B2", {"a": 2.0})
+
+    p = Platform([b1])
+    # initial list
+    assert p.list_bidders() == ["B1"]
+
+    # add bidder
+    p.add_bidder(b2)
+    assert set(p.list_bidders()) == {"B1", "B2"}
+
+    # get bidder by name
+    assert p.get_bidder("B2") == b2
+    assert p.get_bidder("nope") is None
+
+    # remove bidder
+    p.remove_bidder(b1)
+    assert p.list_bidders() == ["B2"]
+
+    # clear all bidders
+    p.clear_bidders()
+    assert p.list_bidders() == []
+
+
+def test_remove_nonexistent_bidder_is_noop():
+    """Removing a bidder that is not on the platform should not raise."""
+    b1 = Bidder("B1", {"a": 1.0})
+    b2 = Bidder("B2", {"a": 2.0})
+    p = Platform([b1])
+    # should not raise
+    p.remove_bidder(b2)
+    assert p.list_bidders() == ["B1"]
+
+
+def test_platform_repr_and_str():
+    """Check string representations of Platform."""
+    b1 = Bidder("X", {"a": 1.0})
+    b2 = Bidder("Y", {"a": 1.0})
+    p = Platform([b1, b2])
+
+    assert repr(p) == "Platform(2 bidders)"
+    s = str(p)
+    assert "Platform with 2 bidders" in s
+    # ensure bidder names are included
+    assert "X" in s and "Y" in s
