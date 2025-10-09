@@ -261,7 +261,6 @@ class Platform:
         except ValueError:
             # previously this would raise; make remove operation tolerant
             return
-        
     def clear_bidders(self):
         """Remove all bidders from the platform."""
         self.bidders = []
