@@ -1,15 +1,18 @@
 import math
-from typing import List
-import pytest
 import random
-from sim.ad_auction import Bidder, AdSpot, Platform
 
+import pytest
+
+from sim.ad_auction import AdSpot, Bidder, Platform
 
 # ---------- Fixtures and helpers ----------
 
-def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: List[float]) -> float:
+
+def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float:
     """Simple valuation: sum of bidder's tag weights matching adspot tags."""
-    return sum(bidder.targeting.get(tag, 0.0) * ctr for tag, ctr in zip(adspot.tags, ctrs))
+    return sum(
+        bidder.targeting.get(tag, 0.0) * ctr for tag, ctr in zip(adspot.tags, ctrs)
+    )
 
 
 @pytest.fixture(autouse=True)
@@ -21,6 +24,7 @@ def fix_random_seed():
 
 
 # ---------- Bidder tests ----------
+
 
 def test_bidder_default_and_custom_func():
     """Test truthful and custom bidding behaviors."""
@@ -35,13 +39,13 @@ def test_bidder_default_and_custom_func():
     assert b.bid(a, val) == 1.0
 
     # custom bid function multiplies valuation
-    custom = Bidder("B", {"sports": 1.0},
-                    bid_func=lambda bidder, adspot, v: v * 2)
+    custom = Bidder("B", {"sports": 1.0}, bid_func=lambda bidder, adspot, v: v * 2)
     assert custom.bid(a, 1.0) == 2.0
     assert "Bidder(B)" in repr(custom)
 
 
 # ---------- AdSpot initialization ----------
+
 
 def test_adspot_init_default_and_explicit_ctrs():
     """Test creation with default and explicit CTRs."""
@@ -65,6 +69,7 @@ def test_adspot_init_default_and_explicit_ctrs():
 
 # ---------- assign(): valuation_fn errors ----------
 
+
 def test_assign_raises_on_missing_valuation_fn():
     """Valuation function must be provided."""
     a = AdSpot(1, ["a"])
@@ -82,6 +87,7 @@ def test_assign_raises_on_unknown_method():
 
 # ---------- Empty and filtering behaviors ----------
 
+
 def test_assign_returns_empty_when_no_eligible_bidders():
     """If all valuations <= 0, return empty allocation."""
     a = AdSpot(2, ["a"])
@@ -91,6 +97,7 @@ def test_assign_returns_empty_when_no_eligible_bidders():
 
 
 # ---------- Auction logic tests ----------
+
 
 def test_first_price_allocation_and_pricing():
     """Verify first-price auction pays own bid."""
@@ -159,6 +166,7 @@ def test_gsp_with_fewer_bidders_than_slots():
 
 # ---------- Platform tests ----------
 
+
 def test_platform_runs_multiple_auctions():
     """Verify Platform delegates to AdSpot.assign correctly."""
     a1 = AdSpot(1, ["a"])
@@ -182,6 +190,7 @@ def test_platform_assign_raises_without_valuation_fn():
 
 
 # ---------- Tie-breaking behavior ----------
+
 
 def test_random_tie_breaking_produces_valid_results():
     """Ensure tie-breaking uses randomness but still valid allocation."""

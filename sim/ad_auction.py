@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from typing import Dict, List, Callable, Optional, Tuple
+from collections.abc import Callable
 
 
 class Bidder:
@@ -14,8 +14,12 @@ class Bidder:
             truthful bidding where the bid equals the bidder's valuation.
     """
 
-    def __init__(self, name: str, targeting: Dict[str, float], 
-                bid_func: Optional[Callable[['Bidder', 'AdSpot', float], float]] = None):
+    def __init__(
+        self,
+        name: str,
+        targeting: dict[str, float],
+        bid_func: Callable[[Bidder, AdSpot, float], float] | None = None,
+    ):
         """Initialize a Bidder.
 
         Args:
@@ -30,14 +34,20 @@ class Bidder:
             0.5
         """
         self.name = name
-        self.targeting = targeting 
+        self.targeting = targeting
 
         # default to truthful bidding
-        def truthful_bid(bidder: 'Bidder', adspot: 'AdSpot', valuation: float) -> float:
+        def truthful_bid(bidder: Bidder, adspot: AdSpot, valuation: float) -> float:
             return valuation
+
         self.bid_func = bid_func or truthful_bid
 
-    def valuation(self, adspot: AdSpot, valuation_fn: Callable[['Bidder', 'AdSpot', List[float]], float], ctrs: List[float]) -> float:
+    def valuation(
+        self,
+        adspot: AdSpot,
+        valuation_fn: Callable[[Bidder, AdSpot, list[float]], float],
+        ctrs: list[float],
+    ) -> float:
         """Compute the bidder's valuation for a given adspot.
 
         Args:
@@ -72,10 +82,10 @@ class AdSpot:
     Attributes:
         num_slots (int): Number of ad slots available.
         tags (list[str]): Contextual tags describing the user/environment.
-        pos (list[float]): Expected position scores per slot. 
+        pos (list[float]): Expected position scores per slot.
     """
 
-    def __init__(self, num_slots: int, tags: List[str], pos: Optional[List[float]] = None):
+    def __init__(self, num_slots: int, tags: list[str], pos: list[float] | None = None):
         """Initialize an AdSpot.
 
         Args:
@@ -103,11 +113,11 @@ class AdSpot:
 
     def assign(
         self,
-        bidders: List[Bidder],
+        bidders: list[Bidder],
         method: str = "second_price",
-        valuation_fn: Optional[Callable[[Bidder, 'AdSpot', List[float]], float]] = None,
-        Qs: Optional[List[float]] = None
-    ) -> Dict[str, List]:
+        valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
+        Qs: list[float] | None = None,
+    ) -> dict[str, list]:
         """Run an auction among bidders for this adspot.
 
         Args:
@@ -129,7 +139,7 @@ class AdSpot:
         """
         if valuation_fn is None:
             raise ValueError("valuation_fn must be provided")
-        
+
         if Qs is None:
             Qs = [1.0 for _ in bidders]  # Default quality scores if none provided
         elif len(Qs) != len(bidders):
@@ -142,31 +152,37 @@ class AdSpot:
         # Compute eligible bidders with positive valuations.
         eligible = []
         for i, b in enumerate(bidders):
-            ctrs = [Qs[i] * p for p in self.pos]  # Effective CTRs per slot for this bidder
+            ctrs = [
+                Qs[i] * p for p in self.pos
+            ]  # Effective CTRs per slot for this bidder
             val = b.valuation(self, valuation_fn, ctrs)
             if val > 0:
                 bid_amt = b.bid(self, val)
-                eligible.append((b, val, bid_amt, Qs[i]))  # (bidder, how much they value the spot, how much they bid, quality score)
+                eligible.append(
+                    (b, val, bid_amt, Qs[i])
+                )  # (bidder, how much they value the spot, how much they bid, quality score)
 
         # If no one bids positively, return empty allocation.
         if not eligible:
-            return {"winners": [None] * self.num_slots, "prices": [0.0] * self.num_slots}
-
+            return {
+                "winners": [None] * self.num_slots,
+                "prices": [0.0] * self.num_slots,
+            }
 
         # Here you can change how winners are determined, here is the classic rank-by-expected-value (bid * quality)
         ###############################################
 
         # Sort descending by bid, breaking ties randomly for fairness.
-        def sort_key(item: Tuple[Bidder, float, float, float]):
-            bidder, val, bid_amt, quality = item
+        def sort_key(item: tuple[Bidder, float, float, float]):
+            _, _, bid_amt, quality = item
             return (bid_amt * quality, random.random())
+
         eligible_sorted = sorted(eligible, key=sort_key, reverse=True)
 
         ###############################################
 
-
-        winners: List[Optional[Bidder]] = [None] * self.num_slots
-        prices: List[float] = [0.0] * self.num_slots
+        winners: list[Bidder | None] = [None] * self.num_slots
+        prices: list[float] = [0.0] * self.num_slots
 
         if method in {"first_price", "second_price"}:
             # Allocate top bidders to identical slots.
@@ -176,7 +192,11 @@ class AdSpot:
                 if method == "first_price":
                     prices[i] = bid_amt
                 else:
-                    prices[i] = eligible_sorted[i + 1][2] if i + 1 < len(eligible_sorted) else 0.0
+                    prices[i] = (
+                        eligible_sorted[i + 1][2]
+                        if i + 1 < len(eligible_sorted)
+                        else 0.0
+                    )
 
         elif method == "gsp":
             # Generalized Second Price: ordered slots with descending CTRs.
@@ -194,14 +214,13 @@ class AdSpot:
 
         ###############################################
 
-
         return {"winners": winners, "prices": prices}
 
 
 class Platform:
     """Manage a set of bidders and coordinate auctions across multiple adspots."""
 
-    def __init__(self, bidders: List[Bidder]):
+    def __init__(self, bidders: list[Bidder]):
         """Initialize the platform with a bidder list.
 
         Args:
@@ -211,14 +230,14 @@ class Platform:
 
     def assign(
         self,
-        adspots: List[AdSpot],
+        adspots: list[AdSpot],
         method: str = "second_price",
-        valuation_fn: Optional[Callable[[Bidder, AdSpot, List[float]], float]] = None,
-    ) -> List[Dict[str, List]]:
+        valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
+    ) -> list[dict[str, list]]:
         """Run auctions for multiple adspots sequentially.
 
         Args:
-            adspots (list[AdSpot]): List of ad opportunities to allocate.
+            adspots (list[AdSpot]): list of ad opportunities to allocate.
             method (str): Auction format, defaults to 'second_price'.
             valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
@@ -237,7 +256,9 @@ class Platform:
             Qs = [random.uniform(0.1, 0.9) for _ in self.bidders]
 
             # Delegates the auction logic to each AdSpot instance.
-            res = spot.assign(self.bidders, method=method, valuation_fn=valuation_fn, Qs=Qs)
+            res = spot.assign(
+                self.bidders, method=method, valuation_fn=valuation_fn, Qs=Qs
+            )
 
             results.append(res)
         return results
@@ -249,7 +270,7 @@ class Platform:
             bidder (Bidder): The bidder to add.
         """
         self.bidders.append(bidder)
-        
+
     def remove_bidder(self, bidder: Bidder):
         """Remove a bidder from the platform.
 
@@ -263,22 +284,22 @@ class Platform:
             print(f"WARNING: Bidder {bidder.name} not found on platform.")
             # previously this would raise; make remove operation tolerant
             return
-        
+
     def clear_bidders(self):
         """Remove all bidders from the platform."""
         self.bidders = []
-        
+
     def __repr__(self) -> str:
         return f"Platform({len(self.bidders)} bidders)"
-    
+
     def __str__(self) -> str:
         return f"Platform with {len(self.bidders)} bidders: {[b.name for b in self.bidders]}"
-    
-    def list_bidders(self) -> List[str]:
+
+    def list_bidders(self) -> list[str]:
         """Return a list of bidder names currently on the platform."""
         return [b.name for b in self.bidders]
-    
-    def get_bidder(self, name: str) -> Optional[Bidder]:
+
+    def get_bidder(self, name: str) -> Bidder | None:
         """Retrieve a bidder by name.
 
         Args:

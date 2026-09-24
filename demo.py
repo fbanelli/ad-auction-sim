@@ -1,8 +1,7 @@
-from typing import List
-from sim.ad_auction import Bidder, AdSpot, Platform
+from sim.ad_auction import AdSpot, Bidder, Platform
 
 
-def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: List[float]) -> float:
+def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float:
     """Compute the bidder's valuation for a given ad spot.
 
     The valuation is the sum of the bidder’s targeting weights corresponding
