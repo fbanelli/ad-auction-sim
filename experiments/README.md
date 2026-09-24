@@ -14,8 +14,8 @@ Files:
 
 How to run:
 
-    PYTHONPATH=. python3 experiments/experiment_gender_allocation.py
+  PYTHONPATH=. uv run python experiments/experiment_gender_allocation.py
 
-If you want plots, install matplotlib:
+The project dependencies, including `matplotlib`, are managed by `uv`. If you
+want plots, run the experiment with `uv run` as shown above.
 
-    python3 -m pip install matplotlib
