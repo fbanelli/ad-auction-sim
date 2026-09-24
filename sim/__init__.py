@@ -4,4 +4,4 @@ from .ad_spot import AdSpot
 from .bidder import Bidder
 from .platform import Platform
 
-__ALL__ = [AdSpot, Bidder, Platform]
+__all__ = ["AdSpot", "Bidder", "Platform"]
