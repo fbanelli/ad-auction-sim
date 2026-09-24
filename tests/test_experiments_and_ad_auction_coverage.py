@@ -8,7 +8,7 @@ from experiments.experiment_gender_allocation import (
     simple_valuation,
     try_plot,
 )
-from sim.ad_auction import AdSpot, Bidder
+from sim import AdSpot, Bidder
 
 
 def test_adspot_invalid_pos_values():
