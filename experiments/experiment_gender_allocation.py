@@ -3,7 +3,7 @@ from collections import Counter
 from collections.abc import Callable
 from typing import Any
 
-from sim.ad_auction import AdSpot, Bidder, Platform
+from sim import AdSpot, Bidder, Platform
 
 
 def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs=None) -> float:
