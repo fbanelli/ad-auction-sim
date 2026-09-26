@@ -17,6 +17,8 @@ Run the tests:
 uv run pytest -q
 ```
 
+Run the notebooks in VS Code by selecting the `.venv` Python interpreter as the notebook kernel. 
+
 For commands in this repository, prefix them with `uv run`.
 
 The core simulator is in `sim/ad_auction.py` with classes `Bidder`, `AdSpot`, and `Platform`.

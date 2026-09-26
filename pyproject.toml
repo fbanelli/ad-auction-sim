@@ -5,6 +5,7 @@ description = "Simulator for the ETH Zurich Game Theory and Control 2025- auctio
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "ipykernel>=6.29.0",
     "matplotlib>=3.11.2",
     "pytest>=9.1.1",
 ]
