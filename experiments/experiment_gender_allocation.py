@@ -1,8 +1,9 @@
-from collections import Counter
 import random
-from typing import Dict, Any, Callable
+from collections import Counter
+from collections.abc import Callable
+from typing import Any
 
-from sim.ad_auction import Bidder, AdSpot, Platform
+from sim.ad_auction import AdSpot, Bidder, Platform
 
 
 def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs=None) -> float:
@@ -11,7 +12,12 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs=None) -> float:
     return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
 
 
-def run_simulations(n_impressions: int = 2000, methods=None, seed: int = 0, valuation_fn: Callable = simple_valuation) -> Dict[str, Any]:
+def run_simulations(
+    n_impressions: int = 2000,
+    methods=None,
+    seed: int = 0,
+    valuation_fn: Callable = simple_valuation,
+) -> dict[str, Any]:
     """Run simulations for a list of auction methods and collect stats.
 
     Args:
@@ -74,7 +80,7 @@ def run_simulations(n_impressions: int = 2000, methods=None, seed: int = 0, valu
     return results
 
 
-def print_summary(results: Dict[str, Any]):
+def print_summary(results: dict[str, Any]):
     for method, stats in results.items():
         print("\nMethod:", method)
         print(f"Total impressions: {stats['n_impressions']}")
@@ -93,6 +99,7 @@ def print_summary(results: Dict[str, Any]):
 def try_plot(results, out_prefix: str = "experiments/output"):
     try:
         import os
+
         import matplotlib.pyplot as plt
 
         os.makedirs(out_prefix, exist_ok=True)
@@ -102,12 +109,14 @@ def try_plot(results, out_prefix: str = "experiments/output"):
             genders = ["female", "male"]
             bidders = []
             for g in genders:
-                for name in stats["counts"][g].keys():
+                for name in stats["counts"][g]:
                     if name not in bidders:
                         bidders.append(name)
 
             # prepare data
-            data = {b: [stats["shares"][g].get(b, 0.0) for g in genders] for b in bidders}
+            data = {
+                b: [stats["shares"][g].get(b, 0.0) for g in genders] for b in bidders
+            }
 
             x = range(len(genders))
             width = 0.35
@@ -118,8 +127,8 @@ def try_plot(results, out_prefix: str = "experiments/output"):
 
             ax.set_xticks([p + width * (len(data) - 1) / 2 for p in x])
             ax.set_xticklabels(genders)
-            ax.set_ylabel('Share of wins')
-            ax.set_title(f'Share by bidder and gender ({method})')
+            ax.set_ylabel("Share of wins")
+            ax.set_title(f"Share by bidder and gender ({method})")
             ax.legend()
 
             fig_path = f"{out_prefix}/share_by_gender_{method}.png"
@@ -127,12 +136,13 @@ def try_plot(results, out_prefix: str = "experiments/output"):
             plt.close(fig)
             print(f"Saved plot to {fig_path}")
 
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001
         print("Plotting skipped (matplotlib not available or error):", e)
 
 
 if __name__ == "__main__":
-    results = run_simulations(n_impressions=2000, methods=["first_price", "second_price", "gsp"], seed=1)
+    results = run_simulations(
+        n_impressions=2000, methods=["first_price", "second_price", "gsp"], seed=1
+    )
     print_summary(results)
     try_plot(results)
-
