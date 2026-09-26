@@ -1,4 +1,4 @@
-from sim.ad_auction import AdSpot, Bidder, Platform
+from sim import AdSpot, Bidder, Platform
 
 
 def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float:

@@ -3,7 +3,7 @@ import random
 
 import pytest
 
-from sim.ad_auction import AdSpot, Bidder, Platform
+from sim import AdSpot, Bidder, Platform
 
 # ---------- Fixtures and helpers ----------
 
