@@ -3,35 +3,26 @@ Ad auction simulator for Game Theory and Control class at ETH Zurich
 
 ## Quick start
 
-Run the demo (requires Python 3.8+ and pytest installed):
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first. The project requires Python 3.12 or newer; `uv` will create and synchronize the project environment automatically.
 
-	python demo.py
+Run the demo:
 
-Run tests:
+```bash
+uv run python demo.py
+```
 
-	pytest -q
+Run the tests:
+
+```bash
+uv run pytest -q
+```
+
+Run the notebooks in VS Code by selecting the `.venv` Python interpreter as the notebook kernel. 
+
+For commands in this repository, prefix them with `uv run`.
 
 The core simulator is in `sim/ad_auction.py` with classes `Bidder`, `AdSpot`, and `Platform`.
 
 For a short tutorial on the simulator, go check out the `demo` folder! 
 
-Recommended environment setup
-
-We suggest using a Conda environment to keep dependencies isolated. Example quick steps:
-
-	# create and activate a conda environment (adjust Python version as needed)
-	conda create -n ad-auction-sim python=3.10 -y
-	conda activate ad-auction-sim
-
-	# install runtime and test dependencies
-	pip install -r requirements.txt
-
-Alternative (venv):
-
-	python -m venv venv
-	source venv/bin/activate
-	pip install -r requirements.txt
-
-Notes
-
-- This repository is a small project and is not published as an installable package by default. You don't need to install it as a package to run the demo or tests.
+This repository is a small classroom project. You do not need to install it as a package to run the demo or tests.
