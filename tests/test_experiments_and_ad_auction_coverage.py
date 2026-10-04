@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+from experiments.config import ExperimentConfig
 from experiments.experiment_gender_allocation import (
     print_summary,
     run_simulations,
@@ -33,12 +34,18 @@ def test_assign_qs_length_mismatch():
 def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
     # Run a small number of impressions to exercise run_simulations
     random.seed(0)
-    results = run_simulations(
+    config = ExperimentConfig(
         n_impressions=10,
         methods=["second_price"],
         seed=0,
+        genders=["male", "female"],
+        bidder_targeting={
+            "Makeup": {"female": 5.0},
+            "STEM": {"female": 2.0, "male": 2.0},
+        },
         valuation_fn=simple_valuation,
     )
+    results = run_simulations(config)
     assert "second_price" in results
     # Exercise print_summary (capture stdout)
     print_summary(results)
@@ -55,11 +62,16 @@ def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
 
 
 def test_run_simulations_default_methods_and_none_winner():
-    # methods default path when methods is None
     # use valuation_fn that returns 0 to force 'none' winners and exercise counts[gender]["none"]
-    results = run_simulations(
-        n_impressions=5, methods=None, seed=1, valuation_fn=lambda b, a, ctrs: 0.0
+    config = ExperimentConfig(
+        n_impressions=5,
+        methods=["first_price", "second_price", "gsp"],
+        seed=1,
+        genders=["male", "female"],
+        bidder_targeting={},
+        valuation_fn=lambda b, a, ctrs: 0.0,
     )
+    results = run_simulations(config)
     # Ensure default methods keys present
     assert all(m in results for m in ["first_price", "second_price", "gsp"])
     # Check that 'none' appears in counts for genders
@@ -102,13 +114,13 @@ def test_module_main_executes(monkeypatch):
     monkeypatch.setattr(
         ega,
         "run_simulations",
-        lambda n_impressions, methods, seed: {
+        lambda config: {
             "x": {
                 "counts": {"male": {}, "female": {}},
                 "shares": {"male": {}, "female": {}},
                 "total_spend": {},
                 "avg_price": 0.0,
-                "n_impressions": n_impressions,
+                "n_impressions": config.n_impressions,
             }
         },
     )

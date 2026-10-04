@@ -1,8 +1,8 @@
 import random
 from collections import Counter
-from collections.abc import Callable
 from typing import Any
 
+from experiments.config import ExperimentConfig
 from sim import AdSpot, Bidder, Platform
 
 
@@ -12,70 +12,69 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs=None) -> float:
     return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
 
 
-def run_simulations(
-    n_impressions: int = 2000,
-    methods=None,
-    seed: int = 0,
-    valuation_fn: Callable = simple_valuation,
-) -> dict[str, Any]:
-    """Run simulations for a list of auction methods and collect stats.
+def run_simulations(config: ExperimentConfig) -> dict[str, Any]:
+    """Run the configured auction experiment and collect summary statistics.
 
     Args:
-        n_impressions: number of user impressions to simulate
-        methods: list of auction methods to simulate (default: ["first_price", "second_price", "gsp"])
-        seed: random seed for reproducibility
-        valuation_fn: function to compute bidder's valuation for an ad spot
+        config: Experiment configuration containing the auction methods,
+            bidders, population groups, valuation function, random seed,
+            and number of impressions.
 
-    Returns a dictionary mapping method -> stats, where stats contains per-gender counts,
-    per-bidder spends, average prices, and share metrics.
+    Returns:
+        Dictionary mapping each auction method to its summary statistics.
     """
-    if methods is None:
-        methods = ["first_price", "second_price", "gsp"]
+    random.seed(config.seed)
 
-    random.seed(seed)
-
-    # Define bidders with gender-specific targeting and valuations
-    makeup = Bidder("Makeup", {"female": 5.0})
-    stem = Bidder("STEM", {"female": 2.0, "male": 2.0})
-    bidders = [makeup, stem]
+    bidders = [
+        Bidder(name, targeting) for name, targeting in config.bidder_targeting.items()
+    ]
 
     results = {}
 
-    for method in methods:
+    for method in config.methods:
         platform = Platform(bidders)
-        counts = {"male": Counter(), "female": Counter()}
-        total_spend = Counter()
-        prices_list = []
 
-        for _ in range(n_impressions):
-            gender = random.choice(["male", "female"])  # 50/50 distribution
+        counts = {gender: Counter() for gender in config.genders}
+        total_spend = Counter()
+        prices = []
+
+        for _ in range(config.n_impressions):
+            gender = random.choice(config.genders)
             spot = AdSpot(1, [gender])
-            res = platform.assign([spot], method=method, valuation_fn=valuation_fn)[0]
-            winner = res["winners"][0]
-            price = res["prices"][0]
-            prices_list.append(price)
+
+            result = platform.assign(
+                [spot],
+                method=method,
+                valuation_fn=config.valuation_fn,
+            )[0]
+
+            winner = result["winners"][0]
+            price = result["prices"][0]
+
+            prices.append(price)
+
             if winner is None:
                 counts[gender]["none"] += 1
             else:
                 counts[gender][winner.name] += 1
                 total_spend[winner.name] += price
 
-        # compute shares and summary
-        summary = {
-            "counts": counts,
-            "total_spend": dict(total_spend),
-            "avg_price": sum(prices_list) / len(prices_list) if prices_list else 0.0,
-            "n_impressions": n_impressions,
-        }
-        # compute per-gender shares for each bidder
-        shares = {"male": {}, "female": {}}
-        for gender in ["female", "male"]:
-            total = sum(counts[gender].values())
-            for bidder_name, val in counts[gender].items():
-                shares[gender][bidder_name] = val / total if total > 0 else 0.0
+        shares = {gender: {} for gender in config.genders}
 
-        summary["shares"] = shares
-        results[method] = summary
+        for gender in config.genders:
+            total = sum(counts[gender].values())
+
+            for bidder_name, count in counts[gender].items():
+                shares[gender][bidder_name] = count / total if total > 0 else 0.0
+
+        results[method] = {
+            "counts": counts,
+            "shares": shares,
+            "total_spend": dict(total_spend),
+            "avg_price": sum(prices) / len(prices) if prices else 0.0,
+            "n_impressions": config.n_impressions,
+            "genders": config.genders,
+        }
 
     return results
 
@@ -138,11 +137,3 @@ def try_plot(results, out_prefix: str = "experiments/output"):
 
     except Exception as e:  # noqa: BLE001
         print("Plotting skipped (matplotlib not available or error):", e)
-
-
-if __name__ == "__main__":
-    results = run_simulations(
-        n_impressions=2000, methods=["first_price", "second_price", "gsp"], seed=1
-    )
-    print_summary(results)
-    try_plot(results)
