@@ -15,6 +15,13 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float
     )
 
 
+def quality_independent_valuation(
+    bidder: Bidder, adspot: AdSpot, ctrs: list[float]
+) -> float:
+    """Use targeting weights as bids independently of effective CTRs."""
+    return bidder.targeting[adspot.tags[0]]
+
+
 @pytest.fixture(autouse=True)
 def fix_random_seed():
     """Fix random seed for deterministic sorting."""
@@ -150,6 +157,57 @@ def test_gsp_ordered_slots_and_pricing():
 
     assert winners == [b1, b2, b3]
     assert prices == [6.0, 4.0, 1.0]
+
+
+def test_gsp_prices_by_quality_adjusted_next_bid():
+    """A winner pays the bid needed to match the next adjusted bid."""
+    a = AdSpot(1, ["music"])
+    b1 = Bidder("A", {"music": 10.0})
+    b2 = Bidder("B", {"music": 4.0})
+
+    res = a.assign(
+        [b1, b2],
+        method="gsp",
+        valuation_fn=quality_independent_valuation,
+        Qs=[0.5, 1.0],
+    )
+
+    assert res["winners"] == [b1]
+    assert res["prices"] == [(1.0 * 4.0) / 0.5]
+
+
+def test_gsp_equal_qualities_still_uses_next_raw_bid():
+    """Equal qualities cancel out of the quality-adjusted GSP price."""
+    a = AdSpot(1, ["music"])
+    b1 = Bidder("A", {"music": 10.0})
+    b2 = Bidder("B", {"music": 4.0})
+
+    res = a.assign(
+        [b1, b2],
+        method="gsp",
+        valuation_fn=quality_independent_valuation,
+        Qs=[0.5, 0.5],
+    )
+
+    assert res["winners"] == [b1]
+    assert res["prices"] == [4.0]
+
+
+def test_gsp_rejects_zero_quality():
+    """GSP requires every supplied bidder quality to be strictly positive."""
+    a = AdSpot(1, ["music"])
+    zero_quality = Bidder("A", {"music": 100.0})
+    positive_quality = Bidder("B", {"music": 1.0})
+
+    with pytest.raises(
+        ValueError, match="GSP requires all qualities to be strictly positive"
+    ):
+        a.assign(
+            [zero_quality, positive_quality],
+            method="gsp",
+            valuation_fn=quality_independent_valuation,
+            Qs=[0.0, 1.0],
+        )
 
 
 def test_gsp_with_fewer_bidders_than_slots():
