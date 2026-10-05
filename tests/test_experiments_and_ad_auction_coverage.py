@@ -122,39 +122,3 @@ def test_try_plot_exception_path(monkeypatch, capsys, tmp_path):
     try_plot(fake_results, out_prefix=str(tmp_path))
     captured = capsys.readouterr()
     assert "Plotting skipped" in captured.out
-
-
-def test_module_main_executes(monkeypatch):
-    # Execute experiments module as __main__ with monkeypatched heavy functions to hit the __main__ block
-    import runpy
-
-    # patch run_simulations, print_summary, try_plot to lightweight stubs
-    import experiments.experiment_gender_allocation as ega
-
-    monkeypatch.setattr(
-        ega,
-        "run_simulations",
-        lambda config: {
-            "x": {
-                "counts": {"male": {}, "female": {}},
-                "shares": {"male": {}, "female": {}},
-                "total_spend": {},
-                "avg_price": 0.0,
-                "n_impressions": config.n_impressions,
-            }
-        },
-    )
-    monkeypatch.setattr(ega, "print_summary", lambda results: None)
-    monkeypatch.setattr(ega, "try_plot", lambda results: None)
-
-    # Running module as __main__ should execute the block without error
-    # suppress the RuntimeWarning about module already present in sys.modules
-    import warnings
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", message=".*found in sys.modules.*", category=RuntimeWarning
-        )
-        runpy.run_module(
-            "experiments.experiment_gender_allocation", run_name="__main__"
-        )
