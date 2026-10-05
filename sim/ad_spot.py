@@ -84,7 +84,7 @@ class AdSpot:
         method = method.lower()
         if method not in {"first_price", "second_price", "gsp"}:
             raise ValueError(f"unknown method: {method}")
-        if method == "gsp" and any(quality <= 0 for quality in Qs):
+        if method == "gsp" and any(not (quality > 0) for quality in Qs):
             raise ValueError("GSP requires all qualities to be strictly positive")
 
         # Compute eligible bidders with positive valuations.
