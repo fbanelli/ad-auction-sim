@@ -25,7 +25,7 @@ def test_assign_qs_length_mismatch():
     with pytest.raises(ValueError):
         a.assign(
             [b],
-            method="second_price",
+            method="gsp",
             valuation_fn=lambda bidder, adspot, ctrs: 1.0,
             Qs=[0.5, 0.6],
         )
@@ -36,7 +36,7 @@ def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
     random.seed(0)
     config = ExperimentConfig(
         n_impressions=10,
-        methods=["second_price"],
+        methods=["gsp"],
         seed=0,
         genders=["male", "female"],
         bidder_targeting={
@@ -46,7 +46,7 @@ def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
         valuation_fn=simple_valuation,
     )
     results = run_simulations(config)
-    assert "second_price" in results
+    assert "gsp" in results
     # Exercise print_summary (capture stdout)
     print_summary(results)
     captured = capsys.readouterr()
@@ -64,7 +64,7 @@ def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
 def test_summary_and_plot_use_configured_genders(tmp_path, capsys):
     config = ExperimentConfig(
         n_impressions=10,
-        methods=["second_price"],
+        methods=["gsp"],
         seed=0,
         genders=["adult", "senior"],
         bidder_targeting={"Bidder": {"adult": 1.0, "senior": 1.0}},
@@ -78,22 +78,22 @@ def test_summary_and_plot_use_configured_genders(tmp_path, capsys):
     assert "Impressions for senior:" in captured.out
 
     try_plot(results, out_prefix=str(tmp_path))
-    assert (tmp_path / "share_by_gender_second_price.png").exists()
+    assert (tmp_path / "share_by_gender_gsp.png").exists()
 
 
-def test_run_simulations_default_methods_and_none_winner():
+def test_run_simulations_configured_methods_and_none_winner():
     # use valuation_fn that returns 0 to force 'none' winners and exercise counts[gender]["none"]
     config = ExperimentConfig(
         n_impressions=5,
-        methods=["first_price", "second_price", "gsp"],
+        methods=["first_price", "gsp"],
         seed=1,
         genders=["male", "female"],
         bidder_targeting={},
         valuation_fn=lambda b, a, ctrs: 0.0,
     )
     results = run_simulations(config)
-    # Ensure default methods keys present
-    assert all(m in results for m in ["first_price", "second_price", "gsp"])
+    # Ensure configured method keys are present
+    assert all(m in results for m in ["first_price", "gsp"])
     # Check that 'none' appears in counts for genders
     for stats in results.values():
         assert stats["counts"]["male"]["none"] + stats["counts"]["female"]["none"] == 5

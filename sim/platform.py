@@ -25,14 +25,14 @@ class Platform:
     def assign(
         self,
         adspots: list[AdSpot],
-        method: str = "second_price",
+        method: str = "gsp",
         valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
     ) -> list[dict[str, list]]:
         """Run auctions for multiple adspots sequentially.
 
         Args:
             adspots (list[AdSpot]): list of ad opportunities to allocate.
-            method (str): Auction format, defaults to 'second_price'.
+            method (str): Auction format, defaults to 'gsp'.
             valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
         Returns:

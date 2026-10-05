@@ -10,7 +10,7 @@ def three_arg_simple_valuation(bidder, adspot, ctrs):
 def test_stem_overrepresented_in_male_impressions():
     config = ExperimentConfig(
         n_impressions=1000,
-        methods=["second_price"],
+        methods=["gsp"],
         seed=42,
         genders=["male", "female"],
         bidder_targeting={
@@ -20,7 +20,7 @@ def test_stem_overrepresented_in_male_impressions():
         valuation_fn=three_arg_simple_valuation,
     )
     results = run_simulations(config)
-    stats = results["second_price"]
+    stats = results["gsp"]
 
     female_total = sum(stats["counts"]["female"].values())
     male_total = sum(stats["counts"]["male"].values())

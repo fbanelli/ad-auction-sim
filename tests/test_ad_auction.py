@@ -81,15 +81,15 @@ def test_assign_raises_on_missing_valuation_fn():
     """Valuation function must be provided."""
     a = AdSpot(1, ["a"])
     with pytest.raises(ValueError):
-        a.assign([], method="second_price", valuation_fn=None)
+        a.assign([], method="gsp", valuation_fn=None)
 
 
-def test_assign_raises_on_unknown_method():
-    """Auction method must be one of the known ones."""
+def test_assign_rejects_removed_second_price_method():
+    """The removed second_price method is no longer part of the public API."""
     a = AdSpot(1, ["a"])
     b = Bidder("X", {"a": 1.0})
-    with pytest.raises(ValueError):
-        a.assign([b], method="not_a_method", valuation_fn=simple_valuation)
+    with pytest.raises(ValueError, match="unknown method: second_price"):
+        a.assign([b], method="second_price", valuation_fn=simple_valuation)
 
 
 # ---------- Empty and filtering behaviors ----------
@@ -116,28 +116,11 @@ def test_first_price_allocation_and_pricing():
     assert math.isclose(res["prices"][0], 3.0)
 
 
-def test_second_price_two_spots_pricing_rules():
-    """Top bidders pay the next-highest bid in second-price auction."""
-    a = AdSpot(2, ["sports"])
-    b1 = Bidder("A", {"sports": 5.0})
-    b2 = Bidder("B", {"sports": 3.0})
-    b3 = Bidder("C", {"sports": 1.0})
-    res = a.assign([b1, b2, b3], method="second_price", valuation_fn=simple_valuation)
-
-    winners, prices = res["winners"], res["prices"]
-    assert winners[0] == b1
-    assert winners[1] == b2
-    # Highest winner pays next-highest bid
-    assert prices[0] == 3.0
-    # Second winner pays next bid or 0
-    assert prices[1] == 1.0
-
-
-def test_second_price_with_fewer_bidders_than_slots():
+def test_gsp_single_bidder_with_multiple_slots():
     """Edge case: fewer eligible bidders than available slots."""
     a = AdSpot(3, ["a"])
     b1 = Bidder("A", {"a": 2.0})
-    res = a.assign([b1], method="second_price", valuation_fn=simple_valuation)
+    res = a.assign([b1], method="gsp", valuation_fn=simple_valuation)
     winners, prices = res["winners"], res["prices"]
     assert winners[0] == b1
     assert winners[1] is None

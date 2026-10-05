@@ -26,8 +26,8 @@ def main():
     """Run a demo auction across multiple pricing methods.
 
     Initializes sample bidders and ad spots, then runs ``Platform.assign``
-    under three auction rules: first-price, second-price, and generalized
-    second-price (GSP). Prints winners and clearing prices for each spot.
+    under two auction rules: first-price and generalized second-price (GSP).
+    Prints winners and clearing prices for each spot.
     """
     bidders = [
         Bidder("Alpha", {"sports": 4.0, "male": 1.0}),
@@ -42,7 +42,7 @@ def main():
 
     platform = Platform(bidders)
 
-    for method in ["first_price", "second_price", "gsp"]:
+    for method in ["first_price", "gsp"]:
         print("\nMethod:", method)
         # The valuation_fn defines how bidders value each spot.
         results = platform.assign(spots, method=method, valuation_fn=simple_valuation)
