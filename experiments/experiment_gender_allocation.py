@@ -87,7 +87,7 @@ def print_summary(results: dict[str, Any]):
         print("Total spend by bidder:")
         for b, s in stats["total_spend"].items():
             print(f"  {b}: {s:.2f}")
-        for gender in ["female", "male"]:
+        for gender in stats["genders"]:
             total = sum(stats["counts"][gender].values())
             print(f"Impressions for {gender}: {total}")
             for name, cnt in stats["counts"][gender].most_common():
@@ -105,7 +105,7 @@ def try_plot(results, out_prefix: str = "experiments/output"):
 
         for method, stats in results.items():
             # bar chart: share by bidder for each gender
-            genders = ["female", "male"]
+            genders = stats["genders"]
             bidders = []
             for g in genders:
                 for name in stats["counts"][g]:
