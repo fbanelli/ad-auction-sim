@@ -24,3 +24,5 @@ Run the notebooks in VS Code by selecting the `.venv` Python interpreter as the 
 The core simulator is in `sim/`, split in the files `bidder.py`, `ad_spot.py`, and `platform.py`.
 
 For a short tutorial on the simulator, go check out the `demo` folder!
+
+For the gender allocation experiment, play around with the notebook `experiments/auction_experiment.ipynb`!
