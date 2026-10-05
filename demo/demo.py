@@ -4,8 +4,8 @@ from sim import AdSpot, Bidder, Platform
 def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float:
     """Compute the bidder's valuation for a given ad spot.
 
-    The valuation is the sum of the bidder’s targeting weights corresponding
-    to the ad spot’s tags. Missing tags in the bidder's targeting map are
+    The valuation is the sum of the bidder's targeting weights corresponding
+    to the ad spot's tags. Missing tags in the bidder's targeting map are
     treated as zero contribution.
 
     Args:
@@ -14,31 +14,20 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float
 
     Returns:
         float: The total valuation score.
-
-    Examples:
-        >>> b = Bidder("A", {"sports": 3.0, "tech": 2.0})
-        >>> s = AdSpot(1, ["sports", "male"], ctrs=[1.0])
-        >>> simple_valuation(b, s)
-        3.0
     """
     val = 0.0
-    for t in adspot.tags:
+    for tag in adspot.tags:
         # Tags not in bidder's targeting dictionary contribute zero.
-        val += bidder.targeting.get(t, 0.0)
+        val += bidder.targeting.get(tag, 0.0)
     return val
 
 
 def main():
     """Run a demo auction across multiple pricing methods.
 
-    Initializes sample bidders and ad spots, then runs `Platform.assign`
+    Initializes sample bidders and ad spots, then runs ``Platform.assign``
     under three auction rules: first-price, second-price, and generalized
     second-price (GSP). Prints winners and clearing prices for each spot.
-
-    Examples:
-        $ python demo.py
-        Method: first_price
-        AdSpot 0: winners=['Alpha'], prices=[...]
     """
     bidders = [
         Bidder("Alpha", {"sports": 4.0, "male": 1.0}),
