@@ -1,3 +1,4 @@
+from experiments.config import ExperimentConfig
 from experiments.experiment_gender_allocation import run_simulations
 
 
@@ -7,7 +8,18 @@ def three_arg_simple_valuation(bidder, adspot, ctrs):
 
 
 def test_stem_overrepresented_in_male_impressions():
-    results = run_simulations(n_impressions=1000, methods=["second_price"], seed=42, valuation_fn=three_arg_simple_valuation)
+    config = ExperimentConfig(
+        n_impressions=1000,
+        methods=["second_price"],
+        seed=42,
+        genders=["male", "female"],
+        bidder_targeting={
+            "Makeup": {"female": 5.0},
+            "STEM": {"female": 2.0, "male": 2.0},
+        },
+        valuation_fn=three_arg_simple_valuation,
+    )
+    results = run_simulations(config)
     stats = results["second_price"]
 
     female_total = sum(stats["counts"]["female"].values())

@@ -2,6 +2,7 @@ import random
 
 import pytest
 
+from experiments.config import ExperimentConfig
 from experiments.experiment_gender_allocation import (
     print_summary,
     run_simulations,
@@ -33,12 +34,18 @@ def test_assign_qs_length_mismatch():
 def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
     # Run a small number of impressions to exercise run_simulations
     random.seed(0)
-    results = run_simulations(
+    config = ExperimentConfig(
         n_impressions=10,
         methods=["second_price"],
         seed=0,
+        genders=["male", "female"],
+        bidder_targeting={
+            "Makeup": {"female": 5.0},
+            "STEM": {"female": 2.0, "male": 2.0},
+        },
         valuation_fn=simple_valuation,
     )
+    results = run_simulations(config)
     assert "second_price" in results
     # Exercise print_summary (capture stdout)
     print_summary(results)
@@ -54,12 +61,37 @@ def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
     # Clean up by removing tmpdir (pytest will handle tmp_path cleanup)
 
 
-def test_run_simulations_default_methods_and_none_winner():
-    # methods default path when methods is None
-    # use valuation_fn that returns 0 to force 'none' winners and exercise counts[gender]["none"]
-    results = run_simulations(
-        n_impressions=5, methods=None, seed=1, valuation_fn=lambda b, a, ctrs: 0.0
+def test_summary_and_plot_use_configured_genders(tmp_path, capsys):
+    config = ExperimentConfig(
+        n_impressions=10,
+        methods=["second_price"],
+        seed=0,
+        genders=["adult", "senior"],
+        bidder_targeting={"Bidder": {"adult": 1.0, "senior": 1.0}},
+        valuation_fn=simple_valuation,
     )
+    results = run_simulations(config)
+
+    print_summary(results)
+    captured = capsys.readouterr()
+    assert "Impressions for adult:" in captured.out
+    assert "Impressions for senior:" in captured.out
+
+    try_plot(results, out_prefix=str(tmp_path))
+    assert (tmp_path / "share_by_gender_second_price.png").exists()
+
+
+def test_run_simulations_default_methods_and_none_winner():
+    # use valuation_fn that returns 0 to force 'none' winners and exercise counts[gender]["none"]
+    config = ExperimentConfig(
+        n_impressions=5,
+        methods=["first_price", "second_price", "gsp"],
+        seed=1,
+        genders=["male", "female"],
+        bidder_targeting={},
+        valuation_fn=lambda b, a, ctrs: 0.0,
+    )
+    results = run_simulations(config)
     # Ensure default methods keys present
     assert all(m in results for m in ["first_price", "second_price", "gsp"])
     # Check that 'none' appears in counts for genders
@@ -90,39 +122,3 @@ def test_try_plot_exception_path(monkeypatch, capsys, tmp_path):
     try_plot(fake_results, out_prefix=str(tmp_path))
     captured = capsys.readouterr()
     assert "Plotting skipped" in captured.out
-
-
-def test_module_main_executes(monkeypatch):
-    # Execute experiments module as __main__ with monkeypatched heavy functions to hit the __main__ block
-    import runpy
-
-    # patch run_simulations, print_summary, try_plot to lightweight stubs
-    import experiments.experiment_gender_allocation as ega
-
-    monkeypatch.setattr(
-        ega,
-        "run_simulations",
-        lambda n_impressions, methods, seed: {
-            "x": {
-                "counts": {"male": {}, "female": {}},
-                "shares": {"male": {}, "female": {}},
-                "total_spend": {},
-                "avg_price": 0.0,
-                "n_impressions": n_impressions,
-            }
-        },
-    )
-    monkeypatch.setattr(ega, "print_summary", lambda results: None)
-    monkeypatch.setattr(ega, "try_plot", lambda results: None)
-
-    # Running module as __main__ should execute the block without error
-    # suppress the RuntimeWarning about module already present in sys.modules
-    import warnings
-
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore", message=".*found in sys.modules.*", category=RuntimeWarning
-        )
-        runpy.run_module(
-            "experiments.experiment_gender_allocation", run_name="__main__"
-        )

@@ -23,6 +23,8 @@ For commands in this repository, prefix them with `uv run`.
 
 The core simulator is in `sim/ad_auction.py` with classes `Bidder`, `AdSpot`, and `Platform`.
 
-For a short tutorial on the simulator, go check out the `demo` folder! 
+For a short tutorial on the simulator, go check out the `demo` folder!
+
+For the gender allocation experiment, play around with the notebook `experiments/auction_experiment.ipynb`!
 
 This repository is a small classroom project. You do not need to install it as a package to run the demo or tests.
