@@ -22,7 +22,7 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float
     return val
 
 
-def main():
+def main() -> None:
     """Run a demo auction across multiple pricing methods.
 
     Initializes sample bidders and ad spots, then runs ``Platform.assign``

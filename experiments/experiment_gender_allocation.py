@@ -6,7 +6,9 @@ from experiments.config import ExperimentConfig
 from sim import AdSpot, Bidder, Platform
 
 
-def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs=None) -> float:
+def simple_valuation(
+    bidder: Bidder, adspot: AdSpot, ctrs: list[float] | None = None
+) -> float:
     # Backwards-compatible: accept optional ctrs (ignored) so this function can be
     # directly passed to the simulator which provides ctrs per bidder.
     return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
@@ -84,7 +86,7 @@ def run_simulations(config: ExperimentConfig) -> dict[str, Any]:
     return results
 
 
-def print_summary(results: dict[str, Any]):
+def print_summary(results: dict[str, Any]) -> None:
     for method, stats in results.items():
         print("\nMethod:", method)
         print(f"Total impressions: {stats['n_impressions']}")
@@ -103,7 +105,9 @@ def print_summary(results: dict[str, Any]):
                 print(f"  {name}: {cnt} ({share:.2%})")
 
 
-def try_plot(results, out_prefix: str = "experiments/output"):
+def try_plot(
+    results: dict[str, Any], out_prefix: str = "experiments/output"
+) -> None:
     try:
         import os
 

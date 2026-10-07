@@ -24,7 +24,7 @@ class Bidder:
         name: str,
         targeting: dict[str, float],
         bid_func: Callable[[Self, AdSpot, float], float] | None = None,
-    ):
+    ) -> None:
         """Initialize a Bidder.
 
         Args:

@@ -2,15 +2,18 @@ import pytest
 
 from experiments.config import ExperimentConfig
 from experiments.experiment_gender_allocation import print_summary, run_simulations
+from sim import AdSpot, Bidder
 from sim import platform as platform_module
 
 
-def three_arg_simple_valuation(bidder, adspot, ctrs):
+def three_arg_simple_valuation(
+    bidder: Bidder, adspot: AdSpot, ctrs: list[float]
+) -> float:
     # ignore ctrs in experiment-level valuation (experiment uses tag-based sums)
     return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
 
 
-def test_stem_overrepresented_in_male_impressions():
+def test_stem_overrepresented_in_male_impressions() -> None:
     config = ExperimentConfig(
         n_impressions=1000,
         methods=["gsp"],
@@ -36,12 +39,14 @@ def test_stem_overrepresented_in_male_impressions():
     share_male = male_stem / male_total if male_total > 0 else 0.0
 
     # Expect STEM share higher among male impressions than female impressions
-    assert share_male > share_female
+    assert share_male > share_female, (
+        "STEM should win a higher share of male impressions"
+    )
 
 
 def test_expected_spend_uses_winner_ctr_once_and_all_impressions_denominator(
-    monkeypatch, capsys
-):
+    monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
     genders = iter(["allocated", "unallocated"])
     qualities = iter([0.2, 0.9, 0.2, 0.9])
     monkeypatch.setattr(
@@ -78,7 +83,7 @@ def test_expected_spend_uses_winner_ctr_once_and_all_impressions_denominator(
     assert "Average price per impression" not in output
 
 
-def test_zero_impressions_has_zero_average_payment():
+def test_zero_impressions_has_zero_average_payment() -> None:
     config = ExperimentConfig(
         n_impressions=0,
         methods=["first_price"],

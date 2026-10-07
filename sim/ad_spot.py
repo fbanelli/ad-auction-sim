@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .bidder import Bidder
@@ -19,7 +19,9 @@ class AdSpot:
         pos (list[float]): Expected position scores per slot.
     """
 
-    def __init__(self, num_slots: int, tags: list[str], pos: list[float] | None = None):
+    def __init__(
+        self, num_slots: int, tags: list[str], pos: list[float] | None = None
+    ) -> None:
         """Initialize an AdSpot.
 
         Args:
@@ -32,7 +34,7 @@ class AdSpot:
             ValueError: If length of `pos` != `num_slots`.
             ValueError: If any value in `pos` is not in [0, 1].
         """
-        assert num_slots >= 1
+        assert num_slots >= 1, "num_slots must be at least 1"
         self.num_slots = num_slots
         self.tags = list(tags)
         if pos is None:
@@ -51,7 +53,7 @@ class AdSpot:
         method: str = "gsp",
         valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
         Qs: list[float] | None = None,
-    ) -> dict[str, list]:
+    ) -> dict[str, Any]:
         """Run an auction among bidders for this adspot.
 
         Args:
@@ -60,7 +62,7 @@ class AdSpot:
             valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
         Returns:
-            dict[str, list]: A dictionary with keys:
+            dict[str, Any]: A dictionary with keys:
                 - 'winners': list of winning bidders (or None if no bids)
                 - 'prices': list of CPC clearing prices per slot
                 - 'effective_ctrs': effective winner CTR per slot (zero if unfilled)
@@ -112,7 +114,9 @@ class AdSpot:
         ###############################################
 
         # Sort descending by bid, breaking ties randomly for fairness.
-        def sort_key(item: tuple[Bidder, float, float, float]):
+        def sort_key(
+            item: tuple[Bidder, float, float, float],
+        ) -> tuple[float, float]:
             _, _, bid_amt, quality = item
             return (bid_amt * quality, random.random())
 

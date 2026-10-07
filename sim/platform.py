@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .ad_spot import AdSpot
@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 class Platform:
     """Manage a set of bidders and coordinate auctions across multiple adspots."""
 
-    def __init__(self, bidders: list[Bidder]):
+    def __init__(self, bidders: list[Bidder]) -> None:
         """Initialize the platform with a bidder list.
 
         Args:
@@ -27,7 +27,7 @@ class Platform:
         adspots: list[AdSpot],
         method: str = "gsp",
         valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
-    ) -> list[dict[str, list]]:
+    ) -> list[dict[str, Any]]:
         """Run auctions for multiple adspots sequentially.
 
         Args:
@@ -36,7 +36,7 @@ class Platform:
             valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
         Returns:
-            list[dict[str, list]]: Results per adspot, each with 'winners',
+            list[dict[str, Any]]: Results per adspot, each with 'winners',
                 CPC 'prices', and winner 'effective_ctrs'.
 
         Raises:
@@ -58,7 +58,7 @@ class Platform:
             results.append(res)
         return results
 
-    def add_bidder(self, bidder: Bidder):
+    def add_bidder(self, bidder: Bidder) -> None:
         """Add a new bidder to the platform.
 
         Args:
@@ -66,7 +66,7 @@ class Platform:
         """
         self.bidders.append(bidder)
 
-    def remove_bidder(self, bidder: Bidder):
+    def remove_bidder(self, bidder: Bidder) -> None:
         """Remove a bidder from the platform.
 
         Args:
@@ -80,7 +80,7 @@ class Platform:
             # previously this would raise; make remove operation tolerant
             return
 
-    def clear_bidders(self):
+    def clear_bidders(self) -> None:
         """Remove all bidders from the platform."""
         self.bidders = []
 
