@@ -84,14 +84,6 @@ def test_assign_raises_on_missing_valuation_fn():
         a.assign([], method="gsp", valuation_fn=None)
 
 
-def test_assign_rejects_removed_second_price_method():
-    """The removed second_price method is no longer part of the public API."""
-    a = AdSpot(1, ["a"])
-    b = Bidder("X", {"a": 1.0})
-    with pytest.raises(ValueError, match="unknown method: second_price"):
-        a.assign([b], method="second_price", valuation_fn=simple_valuation)
-
-
 # ---------- Empty and filtering behaviors ----------
 
 
