@@ -48,7 +48,7 @@ class AdSpot:
     def assign(
         self,
         bidders: list[Bidder],
-        method: str = "second_price",
+        method: str = "gsp",
         valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
         Qs: list[float] | None = None,
     ) -> dict[str, list]:
@@ -56,7 +56,7 @@ class AdSpot:
 
         Args:
             bidders (list[Bidder]): Participants in the auction.
-            method (str): Auction type, one of {'first_price', 'second_price', 'gsp'}.
+            method (str): Auction type, one of {'first_price', 'gsp'}.
             valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
         Returns:
@@ -69,7 +69,6 @@ class AdSpot:
             ValueError: If GSP is requested with a non-positive quality.
 
         Notes:
-            - In second-price auctions, winners pay the next-highest bid.
             - GSP requires strictly positive qualities and charges the minimum
               bids needed to retain each rank.
         """
@@ -82,7 +81,7 @@ class AdSpot:
             raise ValueError("Length of Qs must match number of bidders")
 
         method = method.lower()
-        if method not in {"first_price", "second_price", "gsp"}:
+        if method not in {"first_price", "gsp"}:
             raise ValueError(f"unknown method: {method}")
         if method == "gsp" and any(not (quality > 0) for quality in Qs):
             raise ValueError("GSP requires all qualities to be strictly positive")
@@ -122,19 +121,12 @@ class AdSpot:
         winners: list[Bidder | None] = [None] * self.num_slots
         prices: list[float] = [0.0] * self.num_slots
 
-        if method in {"first_price", "second_price"}:
+        if method == "first_price":
             # Allocate top bidders to identical slots.
             allocated = eligible_sorted[: self.num_slots]
             for i, (bidder, val, bid_amt, quality) in enumerate(allocated):
                 winners[i] = bidder
-                if method == "first_price":
-                    prices[i] = bid_amt
-                else:
-                    prices[i] = (
-                        eligible_sorted[i + 1][2]
-                        if i + 1 < len(eligible_sorted)
-                        else 0.0
-                    )
+                prices[i] = bid_amt
 
         elif method == "gsp":
             # Generalized Second Price: ordered slots with descending CTRs.
