@@ -27,7 +27,7 @@ def main():
 
     Initializes sample bidders and ad spots, then runs ``Platform.assign``
     under two auction rules: first-price and generalized second-price (GSP).
-    Prints winners and clearing prices for each spot.
+    Prints winners, CPC clearing prices, and effective CTRs for each spot.
     """
     bidders = [
         Bidder("Alpha", {"sports": 4.0, "male": 1.0}),
@@ -47,7 +47,10 @@ def main():
         # The valuation_fn defines how bidders value each spot.
         results = platform.assign(spots, method=method, valuation_fn=simple_valuation)
         for i, r in enumerate(results):
-            print(f"AdSpot {i}: winners={r['winners']}, prices={r['prices']}")
+            print(
+                f"AdSpot {i}: winners={r['winners']}, "
+                f"CPC prices={r['prices']}, effective CTRs={r['effective_ctrs']}"
+            )
 
 
 if __name__ == "__main__":

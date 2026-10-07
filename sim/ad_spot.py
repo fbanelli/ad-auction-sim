@@ -62,7 +62,8 @@ class AdSpot:
         Returns:
             dict[str, list]: A dictionary with keys:
                 - 'winners': list of winning bidders (or None if no bids)
-                - 'prices': list of clearing prices per slot
+                - 'prices': list of CPC clearing prices per slot
+                - 'effective_ctrs': effective winner CTR per slot (zero if unfilled)
 
         Raises:
             ValueError: If `valuation_fn` is not provided or `method` unknown.
@@ -104,6 +105,7 @@ class AdSpot:
             return {
                 "winners": [None] * self.num_slots,
                 "prices": [0.0] * self.num_slots,
+                "effective_ctrs": [0.0] * self.num_slots,
             }
 
         # Here you can change how winners are determined, here is the classic rank-by-expected-value (bid * quality)
@@ -120,6 +122,7 @@ class AdSpot:
 
         winners: list[Bidder | None] = [None] * self.num_slots
         prices: list[float] = [0.0] * self.num_slots
+        effective_ctrs: list[float] = [0.0] * self.num_slots
 
         if method == "first_price":
             # Allocate top bidders to identical slots.
@@ -127,12 +130,14 @@ class AdSpot:
             for i, (bidder, val, bid_amt, quality) in enumerate(allocated):
                 winners[i] = bidder
                 prices[i] = bid_amt
+                effective_ctrs[i] = quality * self.pos[i]
 
         elif method == "gsp":
             # Generalized Second Price: ordered slots with descending CTRs.
             allocated = eligible_sorted[: self.num_slots]
             for slot_idx, (bidder, val, bid_amt, quality) in enumerate(allocated):
                 winners[slot_idx] = bidder
+                effective_ctrs[slot_idx] = quality * self.pos[slot_idx]
                 # Price is based on the next *overall* bidder (not just winners).
                 if slot_idx + 1 < len(eligible_sorted):
                     _, _, next_bid, next_quality = eligible_sorted[slot_idx + 1]
@@ -145,4 +150,8 @@ class AdSpot:
 
         ###############################################
 
-        return {"winners": winners, "prices": prices}
+        return {
+            "winners": winners,
+            "prices": prices,
+            "effective_ctrs": effective_ctrs,
+        }

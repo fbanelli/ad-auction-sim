@@ -92,7 +92,11 @@ def test_assign_returns_empty_when_no_eligible_bidders():
     a = AdSpot(2, ["a"])
     b = Bidder("X", {"b": 1.0})  # unrelated tag → valuation 0
     res = a.assign([b], method="first_price", valuation_fn=simple_valuation)
-    assert res == {"winners": [None, None], "prices": [0.0, 0.0]}
+    assert res == {
+        "winners": [None, None],
+        "prices": [0.0, 0.0],
+        "effective_ctrs": [0.0, 0.0],
+    }
 
 
 # ---------- Auction logic tests ----------
@@ -132,6 +136,7 @@ def test_gsp_ordered_slots_and_pricing():
 
     assert winners == [b1, b2, b3]
     assert prices == [6.0, 4.0, 1.0]
+    assert res["effective_ctrs"] == [1.0, 0.6, 0.3]
 
 
 def test_gsp_prices_by_quality_adjusted_next_bid():
@@ -149,6 +154,38 @@ def test_gsp_prices_by_quality_adjusted_next_bid():
 
     assert res["winners"] == [b1]
     assert res["prices"] == [(1.0 * 4.0) / 0.5]
+    assert res["effective_ctrs"] == [0.5]
+
+
+def test_prices_remain_cpc_and_winner_ctr_includes_slot_position():
+    """Auction output separates CPC prices from effective winning CTRs."""
+    spot = AdSpot(1, ["music"], pos=[0.5])
+    winner = Bidder("A", {"music": 5.0})
+    runner_up = Bidder("B", {"music": 1.0})
+
+    first_price = spot.assign(
+        [winner, runner_up],
+        method="first_price",
+        valuation_fn=quality_independent_valuation,
+        Qs=[0.4, 0.9],
+    )
+    gsp = spot.assign(
+        [winner, runner_up],
+        method="gsp",
+        valuation_fn=quality_independent_valuation,
+        Qs=[0.4, 0.9],
+    )
+
+    assert first_price["winners"] == [winner]
+    assert first_price["prices"] == [5.0]
+    assert first_price["effective_ctrs"] == pytest.approx([0.2])
+    assert first_price["effective_ctrs"][0] * first_price["prices"][0] == pytest.approx(
+        1.0
+    )
+    assert gsp["winners"] == [winner]
+    assert gsp["prices"] == pytest.approx([(0.9 * 1.0) / 0.4])
+    assert gsp["effective_ctrs"] == pytest.approx([0.2])
+    assert gsp["effective_ctrs"][0] * gsp["prices"][0] == pytest.approx(0.45)
 
 
 def test_gsp_equal_qualities_still_uses_next_raw_bid():

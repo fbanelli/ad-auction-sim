@@ -114,7 +114,7 @@ def test_try_plot_exception_path(monkeypatch, capsys, tmp_path):
             "counts": {"female": {"A": 1}, "male": {"A": 0}},
             "shares": {"female": {"A": 1.0}, "male": {"A": 0.0}},
             "total_spend": {},
-            "avg_price": 0.0,
+            "avg_payment_per_impression": 0.0,
             "n_impressions": 1,
         }
     }

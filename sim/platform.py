@@ -36,7 +36,8 @@ class Platform:
             valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
 
         Returns:
-            list[dict[str, list]]: Results per adspot, each with 'winners' and 'prices'.
+            list[dict[str, list]]: Results per adspot, each with 'winners',
+                CPC 'prices', and winner 'effective_ctrs'.
 
         Raises:
             ValueError: If `valuation_fn` is not provided.
