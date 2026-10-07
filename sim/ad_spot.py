@@ -66,10 +66,12 @@ class AdSpot:
 
         Raises:
             ValueError: If `valuation_fn` is not provided or `method` unknown.
+            ValueError: If GSP is requested with a non-positive quality.
 
         Notes:
             - In second-price auctions, winners pay the next-highest bid.
-            - In GSP, prices correspond to the next bidder’s bid per slot.
+            - GSP requires strictly positive qualities and charges the minimum
+              bids needed to retain each rank.
         """
         if valuation_fn is None:
             raise ValueError("valuation_fn must be provided")
@@ -82,6 +84,8 @@ class AdSpot:
         method = method.lower()
         if method not in {"first_price", "second_price", "gsp"}:
             raise ValueError(f"unknown method: {method}")
+        if method == "gsp" and any(not (quality > 0) for quality in Qs):
+            raise ValueError("GSP requires all qualities to be strictly positive")
 
         # Compute eligible bidders with positive valuations.
         eligible = []
@@ -137,9 +141,10 @@ class AdSpot:
             allocated = eligible_sorted[: self.num_slots]
             for slot_idx, (bidder, val, bid_amt, quality) in enumerate(allocated):
                 winners[slot_idx] = bidder
-                # Price is the next *overall* bidder's bid (not just among winners)
+                # Price is based on the next *overall* bidder (not just winners).
                 if slot_idx + 1 < len(eligible_sorted):
-                    prices[slot_idx] = eligible_sorted[slot_idx + 1][2]
+                    _, _, next_bid, next_quality = eligible_sorted[slot_idx + 1]
+                    prices[slot_idx] = (next_quality * next_bid) / quality
                 else:
                     prices[slot_idx] = 0.0
 
