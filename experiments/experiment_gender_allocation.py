@@ -9,6 +9,7 @@ from sim import AdSpot, Bidder, Platform
 def simple_valuation(
     bidder: Bidder, adspot: AdSpot, ctrs: list[float] | None = None
 ) -> float:
+    """Return the bidder's per-click value for an ad spot."""
     # Backwards-compatible: accept optional ctrs (ignored) so this function can be
     # directly passed to the simulator which provides ctrs per bidder.
     return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
@@ -57,7 +58,7 @@ def run_simulations(config: ExperimentConfig) -> dict[str, Any]:
                 counts[gender]["none"] += 1
             else:
                 effective_ctr = result["effective_ctrs"][0]
-                expected_payment = effective_ctr * price
+                expected_payment = price * effective_ctr
                 counts[gender][winner.name] += 1
                 total_spend[winner.name] += expected_payment
                 total_expected_payment += expected_payment

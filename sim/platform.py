@@ -33,11 +33,11 @@ class Platform:
         Args:
             adspots (list[AdSpot]): list of ad opportunities to allocate.
             method (str): Auction format, defaults to 'gsp'.
-            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
+            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> per-click valuation.
 
         Returns:
             list[dict[str, Any]]: Results per adspot, each with 'winners',
-                CPC 'prices', and winner 'effective_ctrs'.
+                per-click 'prices', and winner 'effective_ctrs'.
 
         Raises:
             ValueError: If `valuation_fn` is not provided.

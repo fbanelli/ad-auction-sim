@@ -2,7 +2,7 @@ from sim import AdSpot, Bidder, Platform
 
 
 def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float:
-    """Compute the bidder's valuation for a given ad spot.
+    """Compute the bidder's per-click valuation for a given ad spot.
 
     The valuation is the sum of the bidder's targeting weights corresponding
     to the ad spot's tags. Missing tags in the bidder's targeting map are
@@ -13,7 +13,7 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float
         adspot (AdSpot): The ad spot being evaluated.
 
     Returns:
-        float: The total valuation score.
+        float: The total per-click valuation score.
     """
     val = 0.0
     for tag in adspot.tags:
@@ -27,7 +27,7 @@ def main() -> None:
 
     Initializes sample bidders and ad spots, then runs ``Platform.assign``
     under two auction rules: first-price and generalized second-price (GSP).
-    Prints winners, CPC clearing prices, and effective CTRs for each spot.
+    Prints winners, per-click clearing prices, and effective CTRs for each spot.
     """
     bidders = [
         Bidder("Alpha", {"sports": 4.0, "male": 1.0}),
@@ -49,7 +49,7 @@ def main() -> None:
         for i, r in enumerate(results):
             print(
                 f"AdSpot {i}: winners={r['winners']}, "
-                f"CPC prices={r['prices']}, effective CTRs={r['effective_ctrs']}"
+                f"per-click prices={r['prices']}, effective CTRs={r['effective_ctrs']}"
             )
 
 

@@ -70,7 +70,7 @@ def test_expected_spend_uses_winner_ctr_once_and_all_impressions_denominator(
 
     stats = run_simulations(config)["first_price"]
 
-    # CPC is 5; winner effective CTR is 0.2, so expected payment is 1.
+    # Per-click price is 5; winner effective CTR is 0.2, so expected payment is 1.
     # The runner-up CTR (0.9) must not be used, and CTR must be applied once.
     assert stats["total_spend"] == {"Winner": pytest.approx(1.0)}
     # The second, unallocated impression has zero payment and stays in the denominator.

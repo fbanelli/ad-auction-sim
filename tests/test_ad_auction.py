@@ -10,9 +10,9 @@ from sim import AdSpot, Bidder, Platform
 
 
 def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float:
-    """Simple valuation: sum of bidder's tag weights matching adspot tags."""
+    """Simple per-click valuation: sum of bidder's tag weights matching adspot tags."""
     return sum(
-        bidder.targeting.get(tag, 0.0) * ctr for tag, ctr in zip(adspot.tags, ctrs)
+        bidder.targeting.get(tag, 0.0) for tag in adspot.tags
     )
 
 
@@ -158,8 +158,8 @@ def test_gsp_prices_by_quality_adjusted_next_bid() -> None:
     assert res["effective_ctrs"] == [0.5]
 
 
-def test_prices_remain_cpc_and_winner_ctr_includes_slot_position() -> None:
-    """Auction output separates CPC prices from effective winning CTRs."""
+def test_prices_remain_per_click_and_winner_ctr_includes_slot_position() -> None:
+    """Auction output separates per-click prices from effective winning CTRs."""
     spot = AdSpot(1, ["music"], pos=[0.5])
     winner = Bidder("A", {"music": 5.0})
     runner_up = Bidder("B", {"music": 1.0})

@@ -59,12 +59,12 @@ class AdSpot:
         Args:
             bidders (list[Bidder]): Participants in the auction.
             method (str): Auction type, one of {'first_price', 'gsp'}.
-            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
+            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> per-click valuation.
 
         Returns:
             dict[str, Any]: A dictionary with keys:
                 - 'winners': list of winning bidders (or None if no bids)
-                - 'prices': list of CPC clearing prices per slot
+                - 'prices': list of per-click clearing prices per slot
                 - 'effective_ctrs': effective winner CTR per slot (zero if unfilled)
 
         Raises:

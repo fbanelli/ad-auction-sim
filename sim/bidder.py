@@ -57,7 +57,7 @@ class Bidder:
 
         Args:
             adspot (AdSpot): The ad opportunity being evaluated.
-            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
+            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> per-click valuation.
             ctrs (list[float]): Expected click-through rates per slot for this bidder.
 
         Returns:
@@ -73,7 +73,7 @@ class Bidder:
             valuation (float): Bidder's valuation for this adspot.
 
         Returns:
-            float: Bid amount produced by `bid_func`.
+            float: Per-click bid amount produced by `bid_func`.
         """
         return float(self.bid_func(self, adspot, valuation))
 
