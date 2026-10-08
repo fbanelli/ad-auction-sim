@@ -6,7 +6,10 @@ from experiments.config import ExperimentConfig
 from sim import AdSpot, Bidder, Platform
 
 
-def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs=None) -> float:
+def simple_valuation(
+    bidder: Bidder, adspot: AdSpot, ctrs: list[float] | None = None
+) -> float:
+    """Return the bidder's per-click value for an ad spot."""
     # Backwards-compatible: accept optional ctrs (ignored) so this function can be
     # directly passed to the simulator which provides ctrs per bidder.
     return sum(bidder.targeting.get(tag, 0.0) for tag in adspot.tags)
@@ -36,7 +39,7 @@ def run_simulations(config: ExperimentConfig) -> dict[str, Any]:
 
         counts = {gender: Counter() for gender in config.genders}
         total_spend = Counter()
-        prices = []
+        total_expected_payment = 0.0
 
         for _ in range(config.n_impressions):
             gender = random.choice(config.genders)
@@ -51,13 +54,14 @@ def run_simulations(config: ExperimentConfig) -> dict[str, Any]:
             winner = result["winners"][0]
             price = result["prices"][0]
 
-            prices.append(price)
-
             if winner is None:
                 counts[gender]["none"] += 1
             else:
+                effective_ctr = result["effective_ctrs"][0]
+                expected_payment = price * effective_ctr
                 counts[gender][winner.name] += 1
-                total_spend[winner.name] += price
+                total_spend[winner.name] += expected_payment
+                total_expected_payment += expected_payment
 
         shares = {gender: {} for gender in config.genders}
 
@@ -71,7 +75,11 @@ def run_simulations(config: ExperimentConfig) -> dict[str, Any]:
             "counts": counts,
             "shares": shares,
             "total_spend": dict(total_spend),
-            "avg_price": sum(prices) / len(prices) if prices else 0.0,
+            "avg_payment_per_impression": (
+                total_expected_payment / config.n_impressions
+                if config.n_impressions > 0
+                else 0.0
+            ),
             "n_impressions": config.n_impressions,
             "genders": config.genders,
         }
@@ -79,12 +87,15 @@ def run_simulations(config: ExperimentConfig) -> dict[str, Any]:
     return results
 
 
-def print_summary(results: dict[str, Any]):
+def print_summary(results: dict[str, Any]) -> None:
     for method, stats in results.items():
         print("\nMethod:", method)
         print(f"Total impressions: {stats['n_impressions']}")
-        print(f"Average price per impression: {stats['avg_price']:.3f}")
-        print("Total spend by bidder:")
+        print(
+            "Average expected payment per impression: "
+            f"{stats['avg_payment_per_impression']:.3f}"
+        )
+        print("Total expected spend by bidder:")
         for b, s in stats["total_spend"].items():
             print(f"  {b}: {s:.2f}")
         for gender in stats["genders"]:
@@ -95,7 +106,9 @@ def print_summary(results: dict[str, Any]):
                 print(f"  {name}: {cnt} ({share:.2%})")
 
 
-def try_plot(results, out_prefix: str = "experiments/output"):
+def try_plot(
+    results: dict[str, Any], out_prefix: str = "experiments/output"
+) -> None:
     try:
         import os
 

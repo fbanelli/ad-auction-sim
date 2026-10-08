@@ -24,13 +24,13 @@ class Bidder:
         name: str,
         targeting: dict[str, float],
         bid_func: Callable[[Self, AdSpot, float], float] | None = None,
-    ):
+    ) -> None:
         """Initialize a Bidder.
 
         Args:
-            name (str): Bidder identifier.
-            targeting (dict[str, float]): Mapping from tag to expected value per click.
-            bid_func (Optional[Callable]): Function (bidder, adspot, valuation)
+            name: Bidder identifier.
+            targeting: Mapping from tag to expected value per click.
+            bid_func: Function (bidder, adspot, valuation)
                 -> bid amount. Defaults to truthful bidding.
 
         Examples:
@@ -56,12 +56,12 @@ class Bidder:
         """Compute the bidder's valuation for a given adspot.
 
         Args:
-            adspot (AdSpot): The ad opportunity being evaluated.
-            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
-            ctrs (list[float]): Expected click-through rates per slot for this bidder.
+            adspot: The ad opportunity being evaluated.
+            valuation_fn: Function (bidder, adspot, ctrs) -> per-click valuation.
+            ctrs: Expected click-through rates per slot for this bidder.
 
         Returns:
-            float: The computed valuation for this adspot.
+            The computed valuation for this adspot.
         """
         return valuation_fn(self, adspot, ctrs)
 
@@ -69,11 +69,11 @@ class Bidder:
         """Compute the bidder's submitted bid.
 
         Args:
-            adspot (AdSpot): Ad placement opportunity.
-            valuation (float): Bidder's valuation for this adspot.
+            adspot: Ad placement opportunity.
+            valuation: Bidder's valuation for this adspot.
 
         Returns:
-            float: Bid amount produced by `bid_func`.
+            Per-click bid amount produced by `bid_func`.
         """
         return float(self.bid_func(self, adspot, valuation))
 

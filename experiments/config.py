@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 from sim import AdSpot, Bidder
 
-# Inputs: bidder, ad spot, CTRs for that bidder. Output: valuation.
+# Inputs: bidder, ad spot, CTRs for that bidder. Output: per-click valuation.
 ValuationFn = Callable[[Bidder, AdSpot, list[float]], float]
 
 

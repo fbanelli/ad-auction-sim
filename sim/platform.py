@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from collections.abc import Callable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from .ad_spot import AdSpot
@@ -14,11 +14,11 @@ if TYPE_CHECKING:
 class Platform:
     """Manage a set of bidders and coordinate auctions across multiple adspots."""
 
-    def __init__(self, bidders: list[Bidder]):
+    def __init__(self, bidders: list[Bidder]) -> None:
         """Initialize the platform with a bidder list.
 
         Args:
-            bidders (list[Bidder]): Registered participants on the platform.
+            bidders: Registered participants on the platform.
         """
         self.bidders = list(bidders)
 
@@ -27,16 +27,17 @@ class Platform:
         adspots: list[AdSpot],
         method: str = "gsp",
         valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
-    ) -> list[dict[str, list]]:
+    ) -> list[dict[str, Any]]:
         """Run auctions for multiple adspots sequentially.
 
         Args:
-            adspots (list[AdSpot]): list of ad opportunities to allocate.
-            method (str): Auction format, defaults to 'gsp'.
-            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> valuation.
+            adspots: list of ad opportunities to allocate.
+            method: Auction format, defaults to 'gsp'.
+            valuation_fn: Function (bidder, adspot, ctrs) -> per-click valuation.
 
         Returns:
-            list[dict[str, list]]: Results per adspot, each with 'winners' and 'prices'.
+            Results per adspot, each with 'winners',
+                per-click 'prices', and winner 'effective_ctrs'.
 
         Raises:
             ValueError: If `valuation_fn` is not provided.
@@ -57,19 +58,19 @@ class Platform:
             results.append(res)
         return results
 
-    def add_bidder(self, bidder: Bidder):
+    def add_bidder(self, bidder: Bidder) -> None:
         """Add a new bidder to the platform.
 
         Args:
-            bidder (Bidder): The bidder to add.
+            bidder: The bidder to add.
         """
         self.bidders.append(bidder)
 
-    def remove_bidder(self, bidder: Bidder):
+    def remove_bidder(self, bidder: Bidder) -> None:
         """Remove a bidder from the platform.
 
         Args:
-            bidder (Bidder): The bidder to remove.
+            bidder: The bidder to remove.
         """
         # If bidder is not present, do nothing (idempotent remove).
         try:
@@ -79,7 +80,7 @@ class Platform:
             # previously this would raise; make remove operation tolerant
             return
 
-    def clear_bidders(self):
+    def clear_bidders(self) -> None:
         """Remove all bidders from the platform."""
         self.bidders = []
 
@@ -97,10 +98,10 @@ class Platform:
         """Retrieve a bidder by name.
 
         Args:
-            name (str): The name of the bidder to retrieve.
+            name: The name of the bidder to retrieve.
 
         Returns:
-            Optional[Bidder]: The bidder with the given name, or None if not found.
+            The bidder with the given name, or None if not found.
         """
         for b in self.bidders:
             if b.name == name:

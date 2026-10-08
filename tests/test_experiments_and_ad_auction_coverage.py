@@ -1,4 +1,6 @@
 import random
+from pathlib import Path
+from typing import Any, NoReturn
 
 import pytest
 
@@ -12,13 +14,13 @@ from experiments.experiment_gender_allocation import (
 from sim import AdSpot, Bidder
 
 
-def test_adspot_invalid_pos_values():
+def test_adspot_invalid_pos_values() -> None:
     # pos values must be within [0,1]
     with pytest.raises(ValueError):
         AdSpot(2, ["a"], pos=[1.2, 0.5])
 
 
-def test_assign_qs_length_mismatch():
+def test_assign_qs_length_mismatch() -> None:
     a = AdSpot(1, ["a"])
     b = Bidder("X", {"a": 1.0})
     # Call assign with Qs length not matching bidders
@@ -31,7 +33,11 @@ def test_assign_qs_length_mismatch():
         )
 
 
-def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
+def test_run_simulations_and_print_and_plot(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
     # Run a small number of impressions to exercise run_simulations
     random.seed(0)
     config = ExperimentConfig(
@@ -57,11 +63,13 @@ def test_run_simulations_and_print_and_plot(tmp_path, monkeypatch, capsys):
     try_plot(results, out_prefix=str(out_dir))
     # Verify that files were created for the method
     files = list(out_dir.glob("*.png"))
-    assert len(files) >= 1
+    assert files, "try_plot should create at least one PNG"
     # Clean up by removing tmpdir (pytest will handle tmp_path cleanup)
 
 
-def test_summary_and_plot_use_configured_genders(tmp_path, capsys):
+def test_summary_and_plot_use_configured_genders(
+    tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
     config = ExperimentConfig(
         n_impressions=10,
         methods=["gsp"],
@@ -81,7 +89,7 @@ def test_summary_and_plot_use_configured_genders(tmp_path, capsys):
     assert (tmp_path / "share_by_gender_gsp.png").exists()
 
 
-def test_run_simulations_configured_methods_and_none_winner():
+def test_run_simulations_configured_methods_and_none_winner() -> None:
     # use valuation_fn that returns 0 to force 'none' winners and exercise counts[gender]["none"]
     config = ExperimentConfig(
         n_impressions=5,
@@ -93,17 +101,23 @@ def test_run_simulations_configured_methods_and_none_winner():
     )
     results = run_simulations(config)
     # Ensure configured method keys are present
-    assert all(m in results for m in ["first_price", "gsp"])
+    assert all(m in results for m in ["first_price", "gsp"]), (
+        "results must include every configured auction method"
+    )
     # Check that 'none' appears in counts for genders
     for stats in results.values():
         assert stats["counts"]["male"]["none"] + stats["counts"]["female"]["none"] == 5
 
 
-def test_try_plot_exception_path(monkeypatch, capsys, tmp_path):
+def test_try_plot_exception_path(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    tmp_path: Path,
+) -> None:
     # Cause matplotlib.pyplot.subplots to raise so try_plot hits the except block
     import matplotlib.pyplot as plt
 
-    def bad_subplots(*args, **kwargs):
+    def bad_subplots(*args: Any, **kwargs: Any) -> NoReturn:
         raise RuntimeError("boom")
 
     monkeypatch.setattr(plt, "subplots", bad_subplots)
@@ -114,7 +128,7 @@ def test_try_plot_exception_path(monkeypatch, capsys, tmp_path):
             "counts": {"female": {"A": 1}, "male": {"A": 0}},
             "shares": {"female": {"A": 1.0}, "male": {"A": 0.0}},
             "total_spend": {},
-            "avg_price": 0.0,
+            "avg_payment_per_impression": 0.0,
             "n_impressions": 1,
         }
     }
