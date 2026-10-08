@@ -9,11 +9,11 @@ def simple_valuation(bidder: Bidder, adspot: AdSpot, ctrs: list[float]) -> float
     treated as zero contribution.
 
     Args:
-        bidder (Bidder): The bidder evaluating the ad spot.
-        adspot (AdSpot): The ad spot being evaluated.
+        bidder: The bidder evaluating the ad spot.
+        adspot: The ad spot being evaluated.
 
     Returns:
-        float: The total per-click valuation score.
+        The total per-click valuation score.
     """
     val = 0.0
     for tag in adspot.tags:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .bidder import Bidder
@@ -25,9 +25,9 @@ class AdSpot:
         """Initialize an AdSpot.
 
         Args:
-            num_slots (int): Number of available ad slots (>=1).
-            tags (list[str]): Descriptive tags for the impression context.
-            pos (list[float]): Expected position scores per slot. (i.e. Probability of click in that position)
+            num_slots: Number of available ad slots (>=1).
+            tags: Descriptive tags for the impression context.
+            pos: Expected position scores per slot. (i.e. Probability of click in that position)
 
         Raises:
             AssertionError: If `num_slots` < 1.
@@ -53,16 +53,16 @@ class AdSpot:
         method: str = "gsp",
         valuation_fn: Callable[[Bidder, AdSpot, list[float]], float] | None = None,
         Qs: list[float] | None = None,
-    ) -> dict[str, Any]:
+    ) -> dict[str, list]:
         """Run an auction among bidders for this adspot.
 
         Args:
-            bidders (list[Bidder]): Participants in the auction.
-            method (str): Auction type, one of {'first_price', 'gsp'}.
-            valuation_fn (Callable): Function (bidder, adspot, ctrs) -> per-click valuation.
+            bidders: Participants in the auction.
+            method: Auction type, one of {'first_price', 'gsp'}.
+            valuation_fn: Function (bidder, adspot, ctrs) -> per-click valuation.
 
         Returns:
-            dict[str, Any]: A dictionary with keys:
+            Dictionary with keys:
                 - 'winners': list of winning bidders (or None if no bids)
                 - 'prices': list of per-click clearing prices per slot
                 - 'effective_ctrs': effective winner CTR per slot (zero if unfilled)
