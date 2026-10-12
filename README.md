@@ -10,7 +10,7 @@ Install [uv](https://docs.astral.sh/uv/getting-started/installation/) first. The
 Run the demo:
 
 ```bash
-uv run python demo.py
+uv run python demo/demo.py
 ```
 
 Run the tests:
