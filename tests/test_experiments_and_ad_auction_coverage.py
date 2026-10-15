@@ -1,6 +1,5 @@
 import random
 from pathlib import Path
-from typing import Any, NoReturn
 
 import pytest
 
@@ -109,30 +108,32 @@ def test_run_simulations_configured_methods_and_none_winner() -> None:
         assert stats["counts"]["male"]["none"] + stats["counts"]["female"]["none"] == 5
 
 
-def test_try_plot_exception_path(
-    monkeypatch: pytest.MonkeyPatch,
+def test_try_plot_skips_when_output_unwritable(
     capsys: pytest.CaptureFixture[str],
     tmp_path: Path,
 ) -> None:
-    # Cause matplotlib.pyplot.subplots to raise so try_plot hits the except block
-    import matplotlib.pyplot as plt
+    config = ExperimentConfig(
+        n_impressions=5,
+        methods=["gsp"],
+        seed=0,
+        genders=["male", "female"],
+        bidder_targeting={"Bidder": {"male": 1.0, "female": 1.0}},
+        valuation_fn=simple_valuation,
+    )
+    results = run_simulations(config)
 
-    def bad_subplots(*args: Any, **kwargs: Any) -> NoReturn:
-        raise RuntimeError("boom")
+    # An existing file as out_prefix makes creating the output dir fail
+    blocker = tmp_path / "not_a_dir"
+    blocker.write_text("")
 
-    monkeypatch.setattr(plt, "subplots", bad_subplots)
-
-    # build a tiny fake results dict similar to run_simulations output
-    fake_results = {
-        "m": {
-            "counts": {"female": {"A": 1}, "male": {"A": 0}},
-            "shares": {"female": {"A": 1.0}, "male": {"A": 0.0}},
-            "total_spend": {},
-            "avg_payment_per_impression": 0.0,
-            "n_impressions": 1,
-        }
-    }
-
-    try_plot(fake_results, out_prefix=str(tmp_path))
+    try_plot(results, out_prefix=str(blocker))
     captured = capsys.readouterr()
     assert "Plotting skipped" in captured.out
+
+
+def test_try_plot_propagates_non_io_errors(tmp_path: Path) -> None:
+    # Malformed results (missing "genders") are a bug, not something to swallow
+    bad_results = {"m": {"counts": {}, "shares": {}}}
+
+    with pytest.raises(KeyError):
+        try_plot(bad_results, out_prefix=str(tmp_path))

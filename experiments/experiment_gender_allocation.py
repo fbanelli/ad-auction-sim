@@ -112,7 +112,9 @@ def try_plot(
     try:
         import os
 
-        import matplotlib.pyplot as plt
+        # Build figures without pyplot: we only save to disk, so avoid loading a
+        # GUI backend (e.g. TkAgg on Windows, whose Tcl init can fail).
+        from matplotlib.figure import Figure
 
         os.makedirs(out_prefix, exist_ok=True)
 
@@ -133,7 +135,8 @@ def try_plot(
             x = range(len(genders))
             width = 0.35
 
-            fig, ax = plt.subplots()
+            fig = Figure()
+            ax = fig.subplots()
             for i, (b, vals) in enumerate(data.items()):
                 ax.bar([p + i * width for p in x], vals, width, label=b)
 
@@ -145,8 +148,9 @@ def try_plot(
 
             fig_path = f"{out_prefix}/share_by_gender_{method}.png"
             fig.savefig(fig_path)
-            plt.close(fig)
             print(f"Saved plot to {fig_path}")
 
-    except Exception as e:  # noqa: BLE001
-        print("Plotting skipped (matplotlib not available or error):", e)
+    except OSError as e:
+        # Only filesystem problems (e.g. unwritable output dir) are tolerated;
+        # anything else is a bug and should surface.
+        print("Plotting skipped (could not write output):", e)
